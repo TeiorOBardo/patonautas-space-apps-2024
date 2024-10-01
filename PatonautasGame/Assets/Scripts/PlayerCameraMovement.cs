@@ -24,7 +24,7 @@ public class PlayerCameraMovement : MonoBehaviour
     void Update()
     {
         //deixa o cursor invisivel
-        //Cursor.visible = false;
+        Cursor.visible = false;
         //pega quanto o cursor moveu nesse frame
         lastMousePosition = Input.mousePosition - lastMousePosition;
         //cria um vetor pra rotacao
