@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class GrabHandler : MonoBehaviour
 {
-    // Start is called before the first frame update
+    bool leftArmFree = true;
+    bool rightArmFree = true;
+    public RaycastHit hitInfo;
     void Start()
     {
         
