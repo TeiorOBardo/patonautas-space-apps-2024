@@ -39,7 +39,6 @@ public class BetterCameraMovement : MonoBehaviour
             //se sim, nao deixa a diferenca passar do limite
             transform.localEulerAngles = new Vector3(ClampAngle(transform.localEulerAngles.x, -verticalRotationLimitUp, verticalRotationLimitDown), transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
-        //armazena a nova posicao do mouse
     }
 
     //limita os angulos

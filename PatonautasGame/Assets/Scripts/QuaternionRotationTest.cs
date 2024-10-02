@@ -11,6 +11,9 @@ public class QuaternionRotationTest : MonoBehaviour
     float grabRange = 4f;
     public Transform playerCamera;
     Vector3 anchor;
+    int anchorArm;
+    Vector3 sideAnchor;
+    int sideAnchorArm;
     float verticalAngularSpeed = 20f;
     void Start()
     {
@@ -36,7 +39,8 @@ public class QuaternionRotationTest : MonoBehaviour
         Quaternion rotation = Quaternion.AngleAxis(verticalAngularSpeed * Time.deltaTime * verticalDirection, transform.right);
         Vector3 rotatedDifference = rotation * positionDifference;
         transform.position = rotatedDifference + anchor;
-        transform.LookAt(anchor, Vector3.up);// FIX THIS
+        float angleFormed = Vector3.Angle(positionDifference, transform.position - anchor);
+        transform.rotation *= Quaternion.AngleAxis(angleFormed, transform.right);
     }
 
     bool LookingAtGrabbable()
