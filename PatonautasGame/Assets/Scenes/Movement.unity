@@ -346,13 +346,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056530027}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a63a917aa75ed0f4db54b49494f94ad3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   playerCamera: {fileID: 1339043182}
-  grabRange: 4
 --- !u!54 &1056530033
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -387,7 +386,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056530027}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2dcc4fcbd567beb4b869ec4bca70cbce, type: 3}
   m_Name: 
