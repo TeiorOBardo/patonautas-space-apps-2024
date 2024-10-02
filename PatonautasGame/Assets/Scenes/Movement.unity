@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 606522049}
   - component: {fileID: 606522048}
   - component: {fileID: 606522047}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: ExampleHoldingObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -240,7 +240,9 @@ GameObject:
   - component: {fileID: 1056530030}
   - component: {fileID: 1056530029}
   - component: {fileID: 1056530032}
+  - component: {fileID: 1056530034}
   - component: {fileID: 1056530028}
+  - component: {fileID: 1056530033}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -344,13 +346,53 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056530027}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a63a917aa75ed0f4db54b49494f94ad3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   playerCamera: {fileID: 1339043182}
   grabRange: 4
+--- !u!54 &1056530033
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056530027}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &1056530034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056530027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dcc4fcbd567beb4b869ec4bca70cbce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerCamera: {fileID: 1339043182}
 --- !u!1 &1260020182
 GameObject:
   m_ObjectHideFlags: 0
@@ -455,8 +497,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1339043182}
   - component: {fileID: 1339043185}
-  - component: {fileID: 1339043184}
   - component: {fileID: 1339043186}
+  - component: {fileID: 1339043184}
   m_Layer: 0
   m_Name: Player Camera
   m_TagString: MainCamera
@@ -547,7 +589,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1339043181}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b0fbb963ed8c884f9348c426d413ea0, type: 3}
+  m_Script: {fileID: 11500000, guid: 1e6e74145c3d37641bc893eecd6231b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 1056530031}
