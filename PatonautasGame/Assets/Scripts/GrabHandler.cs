@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -8,12 +9,14 @@ public class GrabHandler : MonoBehaviour
 {
     public Transform playerCamera;
     Rigidbody rigidBody;
-    Vector3 anchor;
-    Vector3 sideAnchor;
-    int anchorArm;
-    int sideAnchorArm;
-    float anchorDistance = 0;
-    Quaternion anchorRotation = Quaternion.identity;
+    struct Anchor {
+        public int arm;
+        public Vector3 position;
+        public float distance;
+        public Quaternion rotation;
+        public bool nulled;
+    }
+    Anchor[] anchors = new Anchor[2];
     bool leftArmFree = true;
     bool rightArmFree = true;
     bool grabbing = false;
@@ -30,7 +33,8 @@ public class GrabHandler : MonoBehaviour
     {
         unmovableObjectLayer = LayerMask.GetMask("Not Movable Grabable");
         rigidBody = GetComponent<Rigidbody>();
-        
+        ResetAnchor(ref anchors[0]);
+        ResetAnchor(ref anchors[1]);
     }
 
     // Update is called once per frame
@@ -43,16 +47,39 @@ public class GrabHandler : MonoBehaviour
                 print("hit the collider " + hitInfo.collider.name);
                 GrabOnObject();
             }
+        }else if(CanUngrab())
+        {
+            
+            print("Ungrabbing " + leftArmFree + "  = left arm " + rightArmFree + " = right arm");
+            Ungrab();
         }
+    }
+
+    private void FixedUpdate()
+    {
         if(grabbing)
         {
             HandleMovement();
         }
     }
-    
+
+    void ResetAnchor(ref Anchor anchor)
+    {
+        anchor.arm = 0;
+        anchor.position = Vector3.zero;
+        anchor.distance = 0f;
+        anchor.rotation = Quaternion.identity;
+        anchor.nulled = true;
+    }
+
     bool CanTryToGrab()
     {
         return (Input.GetMouseButtonDown(0) && leftArmFree) || (Input.GetMouseButtonDown(1) && rightArmFree);
+    }
+
+    bool CanUngrab()
+    {
+        return(Input.GetMouseButtonDown(0) && !leftArmFree) || (Input.GetMouseButtonDown(1) && !rightArmFree);
     }
     
     bool LookingAtGrabbable()
@@ -63,41 +90,61 @@ public class GrabHandler : MonoBehaviour
 
     void GrabOnObject()
     {
-        anchor = hitInfo.point;
-        anchorDistance = (rigidBody.position - anchor).magnitude;
-        anchorRotation = rigidBody.rotation;
+        //save anchor settings
+        int index = 0;
+        if (grabbing)
+        {
+            if (!anchors[1].nulled)
+            {
+                Debug.LogError("Tentou criar nova anchor, mas os dois bracos estavam indisponiveis, settando para braco 2");
+            }
+            index = 1;
+        }
+        SetUpAnchor(ref anchors[index]);
+
         if (Input.GetMouseButtonDown(0) && leftArmFree)
         {
-            //adjust for if this is second grab
+            anchors[index].arm = 1;
             leftArmFree = false;
         }
         else if (rightArmFree)
         {
+            anchors[index].arm = 2;
             rightArmFree = false;
         }
+        if (index == 0)
+        {
+            needToSetup = true;
+        }
         grabbing = true;
-        needToSetup = true;
+    }
+
+    void SetUpAnchor(ref Anchor anchor)
+    {
+        anchor.position = hitInfo.point;
+        anchor.distance = (rigidBody.position - anchor.position).magnitude;
+        anchor.rotation = rigidBody.rotation;
+        anchor.nulled = false;
     }
 
     void HandleMovement()
     {
         float verticalDirection = 0f;
-        if (Input.GetKey(KeyCode.W))
+        if ((Input.GetKey(KeyCode.W)) && anchors[1].nulled)
         {
             verticalDirection = 1f;
         }
-        else if (Input.GetKey(KeyCode.S))
+        else if ((Input.GetKey(KeyCode.S)) && anchors[1].nulled)
         {
             verticalDirection = -1f;
         }
-        Vector3 positionDifference = rigidBody.position - anchor;
-        Quaternion rotation = Quaternion.AngleAxis(verticalAngularSpeed * Time.deltaTime * verticalDirection, transform.right);
+        Vector3 positionDifference = rigidBody.position - anchors[0].position;
+        Quaternion rotation = Quaternion.AngleAxis(verticalAngularSpeed * Time.fixedDeltaTime * verticalDirection, transform.right);
         Vector3 rotatedDifference = rotation * positionDifference;
         if (needToSetup)
         {
-            setupCoroutine = StartCoroutine(SetupPositionAndRotation(Vector3.Angle(transform.forward, -1 * positionDifference), anchor - rigidBody.position));
+            setupCoroutine = StartCoroutine(SetupPositionAndRotation());
             needToSetup = false;
-            transform.LookAt(anchor);
             print("Started Setup");
         }else if(stopSetup)
         {
@@ -105,28 +152,30 @@ public class GrabHandler : MonoBehaviour
             print("Finished Setup");
             stopSetup = false;
         }
-        rigidBody.MovePosition((rotatedDifference.normalized * anchorDistance) + anchor);
-        angleFormed += verticalDirection * Vector3.Angle(positionDifference, rigidBody.position - anchor);
-        rigidBody.MoveRotation(Quaternion.AngleAxis(angleFormed, transform.right) * anchorRotation);
-        /*if(Mathf.Abs(anchorDistance - grabRange - distanceFromRange) > 0.2)
-        {
-            anchorDistance = Mathf.Lerp(anchorDistance, grabRange - distanceFromRange, 0.5f * Time.deltaTime);
-        }*/
-        
+        rigidBody.velocity = Vector3.zero;
+        rigidBody.angularVelocity = Vector3.zero;
+        rigidBody.MovePosition((rotatedDifference.normalized * anchors[0].distance) + anchors[0].position);
+        angleFormed += verticalDirection * Vector3.Angle(positionDifference, rigidBody.position - anchors[0].position);
+        rigidBody.MoveRotation(Quaternion.AngleAxis(angleFormed, transform.right) * anchors[0].rotation);
+        // check if body got too far from anchors[1]
     }
 
-    IEnumerator SetupPositionAndRotation(float angleToMove, Vector3 oldPositionDifference)
+    IEnumerator SetupPositionAndRotation()
     {
+        Quaternion originalRotation = anchors[0].rotation; // talvez tenha um problema pq quaternion e um reference value
+        float originalAnchorDistance = anchors[0].distance;
+        Vector3 positionDifference = anchors[0].position - rigidBody.position;
+        float time = 0f;
         while (true)
         {
-            anchorDistance = Mathf.Lerp(anchorDistance, grabRange - distanceFromRange, Time.deltaTime * 0.5f);
-            //Quaternion targetRotation = Quaternion.AngleAxis(angleToMove, -1 * oldPositionDifference);
-            //Quaternion.Lerp(anchorRotation, targetRotation, 0.5f * Time.deltaTime);
-            //anchorRotation = Quaternion.Euler(Vector3.Lerp(anchorRotation.eulerAngles, oldPositionDifference.normalized, 0.5f * Time.deltaTime));
-            print(oldPositionDifference.normalized + "OldPosDif");
+            time += Time.deltaTime / 2f;
+            anchors[0].distance = Mathf.Lerp(originalAnchorDistance, grabRange - distanceFromRange, Mathf.Clamp01(time));
+            anchors[0].rotation = Quaternion.Slerp(originalRotation, Quaternion.LookRotation(positionDifference, Vector3.up), Mathf.Clamp01(time*2));
+            /*   para debugar essa funcao
+            print(anchorDistance + " AnchorDistance");
             print(anchorRotation + " Rotation");
-            print(Vector3.Angle(anchorRotation.eulerAngles, oldPositionDifference) + " Delta");
-            if ((Mathf.Abs(anchorDistance - grabRange - distanceFromRange) < 0.05f) && (Mathf.Abs(Vector3.Angle(anchorRotation.eulerAngles, oldPositionDifference.normalized)) < 1f))
+            print(Vector3.Angle(anchorRotation.eulerAngles, oldPositionDifference) + " Delta"); */
+            if (time >= 1f)
             {
                 print("Ready to stop setup");
                 stopSetup = true;
@@ -135,12 +184,49 @@ public class GrabHandler : MonoBehaviour
         }
     }
 
+    void Ungrab()
+    {
+        // se o braco que precisa soltar e o principal e tem outro braco segurando
+        if (Input.GetMouseButtonDown(anchors[0].arm-1) && (!anchors[1].nulled))
+        {
+            print("Making the other arm the main arm");
+            ResetAnchor(ref anchors[0]);
+            anchors[0] = anchors[1];
+            anchors[0].rotation = rigidBody.rotation;
+            if(setupCoroutine != null)
+            {
+                StopCoroutine(setupCoroutine);
+            }
+            needToSetup = true;
+            stopSetup = false;
+            angleFormed = 0f;
+            ResetAnchor(ref anchors[1]);
+            switch(anchors[0].arm)
+            {
+                case 1:
+                    rightArmFree = true;
+                    break;
+                case 2:
+                    leftArmFree = true;
+                    break;
+            }
+        }
+    }
+
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.yellow;
-        if(anchor != null)
+        Color[] colors = new Color[2];
+        colors[0] = Color.yellow;
+        colors[1] = Color.blue;
+        if(!anchors[0].nulled)
         {
-            Gizmos.DrawSphere(anchor, 0.05f);
+            Gizmos.color = colors[(int)Mathf.Clamp01(anchors[0].arm - 1)];
+            Gizmos.DrawSphere(anchors[0].position, 0.05f);
+        }
+        if (!anchors[1].nulled)
+        {
+            Gizmos.color = colors[(int)Mathf.Clamp01(anchors[1].arm - 1)];
+            Gizmos.DrawSphere(anchors[1].position, 0.05f);
         }
     }
 }

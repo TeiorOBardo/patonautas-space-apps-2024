@@ -18,17 +18,16 @@ public class BetterCameraMovement : MonoBehaviour
     {
         //deixa o cursor travado no meio
         Cursor.lockState = CursorLockMode.Locked;
+        
         //cria um vetor pra rotacao baseado no movimento do mouse
         Vector3 mouseRotation = new Vector3(-Input.GetAxisRaw("Mouse Y") * speed, Input.GetAxisRaw("Mouse X") * speed, 0);
-        //rotaciona
         transform.localEulerAngles += mouseRotation;
-        //nao deixa o z rotacionar
         transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, transform.localEulerAngles.y, 0);
-        //pega a diferenca entre a rotacao da camera e a do player no eixo x
+
+        //pega a diferenca entre a rotacao da camera e a do player
         float angleDiffenceX = Mathf.DeltaAngle(transform.localEulerAngles.y, player.localEulerAngles.y);
-        //pega a diferenca entre a rotacao da camera e a do player no eixo y
         float angleDiffenceY = Mathf.DeltaAngle(transform.localEulerAngles.x, player.localEulerAngles.x);
-        //verifica se a diferenca e maior que o limite
+
         if (Mathf.Abs(angleDiffenceX) > horizontalRotationLimit)
         {
             //se sim, nao deixa a diferenca passar do limite
@@ -36,7 +35,6 @@ public class BetterCameraMovement : MonoBehaviour
         }
         if (Mathf.Abs(angleDiffenceY) > verticalRotationLimitDown)
         {
-            //se sim, nao deixa a diferenca passar do limite
             transform.localEulerAngles = new Vector3(ClampAngle(transform.localEulerAngles.x, -verticalRotationLimitUp, verticalRotationLimitDown), transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
     }
