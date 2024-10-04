@@ -28,15 +28,18 @@ public class BetterCameraMovement : MonoBehaviour
         float angleDiffenceX = Mathf.DeltaAngle(transform.localEulerAngles.y, player.localEulerAngles.y);
         float angleDiffenceY = Mathf.DeltaAngle(transform.localEulerAngles.x, player.localEulerAngles.x);
 
-        if (Mathf.Abs(angleDiffenceX) > horizontalRotationLimit)
+        transform.localEulerAngles = new Vector3(ClampAngle(transform.localEulerAngles.x, -verticalRotationLimitUp, verticalRotationLimitDown), ClampAngle(transform.localEulerAngles.y, -horizontalRotationLimit, horizontalRotationLimit), transform.localEulerAngles.z);
+        /*if (transform.localEulerAngles.y > horizontalRotationLimit)
         {
             //se sim, nao deixa a diferenca passar do limite
+            print(transform.localEulerAngles.y + " transform.localEulerAngles.y");
             transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, ClampAngle(transform.localEulerAngles.y, -horizontalRotationLimit, horizontalRotationLimit), transform.localEulerAngles.z);
         }
-        if (Mathf.Abs(angleDiffenceY) > verticalRotationLimitDown)
+        if (transform.localEulerAngles.x > verticalRotationLimitDown)
         {
+            print(transform.localEulerAngles.x + " transform.localEulerAngles.x");
             transform.localEulerAngles = new Vector3(ClampAngle(transform.localEulerAngles.x, -verticalRotationLimitUp, verticalRotationLimitDown), transform.localEulerAngles.y, transform.localEulerAngles.z);
-        }
+        }*/
     }
 
     //limita os angulos

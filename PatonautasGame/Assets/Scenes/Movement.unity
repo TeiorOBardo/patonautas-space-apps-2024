@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -257,7 +257,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056530027}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: c04142e395264b3449fdb1a6b2a07c28, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -361,7 +361,7 @@ Rigidbody:
   m_GameObject: {fileID: 1056530027}
   serializedVersion: 4
   m_Mass: 1
-  m_Drag: 0
+  m_Drag: 100
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}

@@ -15,6 +15,7 @@ public class GrabHandler : MonoBehaviour
         public float distance;
         public Quaternion rotation;
         public bool nulled;
+        public Vector3 right;
     }
     Anchor[] anchors = new Anchor[2];
     bool leftArmFree = true;
@@ -70,6 +71,7 @@ public class GrabHandler : MonoBehaviour
         anchor.distance = 0f;
         anchor.rotation = Quaternion.identity;
         anchor.nulled = true;
+        anchor.right = Vector3.zero;
     }
 
     bool CanTryToGrab()
@@ -125,6 +127,7 @@ public class GrabHandler : MonoBehaviour
         anchor.distance = (rigidBody.position - anchor.position).magnitude;
         anchor.rotation = rigidBody.rotation;
         anchor.nulled = false;
+        anchor.right = transform.right;
     }
 
     void HandleMovement()
@@ -139,7 +142,7 @@ public class GrabHandler : MonoBehaviour
             verticalDirection = -1f;
         }
         Vector3 positionDifference = rigidBody.position - anchors[0].position;
-        Quaternion rotation = Quaternion.AngleAxis(verticalAngularSpeed * Time.fixedDeltaTime * verticalDirection, transform.right);
+        Quaternion rotation = Quaternion.AngleAxis(verticalAngularSpeed * Time.fixedDeltaTime * verticalDirection, anchors[0].right);
         Vector3 rotatedDifference = rotation * positionDifference;
         if (needToSetup)
         {
@@ -152,11 +155,14 @@ public class GrabHandler : MonoBehaviour
             print("Finished Setup");
             stopSetup = false;
         }
+        //print(transform.rotation + " transform.rotation");
+        //print(rigidBody.rotation + " rigidBody.rotation");
         rigidBody.velocity = Vector3.zero;
         rigidBody.angularVelocity = Vector3.zero;
         rigidBody.MovePosition((rotatedDifference.normalized * anchors[0].distance) + anchors[0].position);
+        //check if is colliding, then check if angle from positionDifference - rigidBody.position to normal of collision is < 90
         angleFormed += verticalDirection * Vector3.Angle(positionDifference, rigidBody.position - anchors[0].position);
-        rigidBody.MoveRotation(Quaternion.AngleAxis(angleFormed, transform.right) * anchors[0].rotation);
+        rigidBody.MoveRotation(Quaternion.AngleAxis(angleFormed, anchors[0].right) * anchors[0].rotation);
         // check if body got too far from anchors[1]
     }
 
@@ -210,6 +216,40 @@ public class GrabHandler : MonoBehaviour
                     leftArmFree = true;
                     break;
             }
+        }else if (Input.GetMouseButtonDown(anchors[0].arm - 1))
+        {
+            print("Letting go of main arm");
+            switch (anchors[0].arm)
+            {
+                case 1:
+                    leftArmFree = true;
+                    break;
+                case 2:
+                    rightArmFree = true;
+                    break;
+            }
+            ResetAnchor(ref anchors[0]);
+            if (setupCoroutine != null)
+            {
+                StopCoroutine(setupCoroutine);
+            }
+            needToSetup = false;
+            stopSetup = false;
+            grabbing = false;
+            angleFormed = 0f;
+        }else
+        {
+            print("Letting go of side arm");
+            switch (anchors[1].arm)
+            {
+                case 1:
+                    leftArmFree = true;
+                    break;
+                case 2:
+                    rightArmFree = true;
+                    break;
+            }
+            ResetAnchor(ref anchors[1]);
         }
     }
 
