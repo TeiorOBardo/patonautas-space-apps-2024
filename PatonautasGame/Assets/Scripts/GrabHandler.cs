@@ -18,6 +18,8 @@ public class GrabHandler : MonoBehaviour
         public Vector3 right;
     }
     Anchor[] anchors = new Anchor[2];
+    Vector3 contactNormal;
+    Collider collisionCollider;
     bool leftArmFree = true;
     bool rightArmFree = true;
     bool grabbing = false;
@@ -159,10 +161,12 @@ public class GrabHandler : MonoBehaviour
         //print(rigidBody.rotation + " rigidBody.rotation");
         rigidBody.velocity = Vector3.zero;
         rigidBody.angularVelocity = Vector3.zero;
-        rigidBody.MovePosition((rotatedDifference.normalized * anchors[0].distance) + anchors[0].position);
-        //check if is colliding, then check if angle from positionDifference - rigidBody.position to normal of collision is < 90
-        angleFormed += verticalDirection * Vector3.Angle(positionDifference, rigidBody.position - anchors[0].position);
-        rigidBody.MoveRotation(Quaternion.AngleAxis(angleFormed, anchors[0].right) * anchors[0].rotation);
+        if ((contactNormal == Vector3.zero) || (Vector3.Angle((rotatedDifference - positionDifference), contactNormal) <= 95f))
+        {
+            rigidBody.MovePosition((rotatedDifference.normalized * anchors[0].distance) + anchors[0].position);
+            angleFormed += verticalDirection * Vector3.Angle(positionDifference, rigidBody.position - anchors[0].position);
+            rigidBody.MoveRotation(Quaternion.AngleAxis(angleFormed, anchors[0].right) * anchors[0].rotation);
+        }
         // check if body got too far from anchors[1]
     }
 
@@ -181,6 +185,7 @@ public class GrabHandler : MonoBehaviour
             print(anchorDistance + " AnchorDistance");
             print(anchorRotation + " Rotation");
             print(Vector3.Angle(anchorRotation.eulerAngles, oldPositionDifference) + " Delta"); */
+            anchors[0].right = transform.right;
             if (time >= 1f)
             {
                 print("Ready to stop setup");
@@ -199,6 +204,7 @@ public class GrabHandler : MonoBehaviour
             ResetAnchor(ref anchors[0]);
             anchors[0] = anchors[1];
             anchors[0].rotation = rigidBody.rotation;
+            anchors[0].right = transform.right;
             if(setupCoroutine != null)
             {
                 StopCoroutine(setupCoroutine);
@@ -218,6 +224,7 @@ public class GrabHandler : MonoBehaviour
             }
         }else if (Input.GetMouseButtonDown(anchors[0].arm - 1))
         {
+            //se esta soltando do braco principal
             print("Letting go of main arm");
             switch (anchors[0].arm)
             {
@@ -239,6 +246,7 @@ public class GrabHandler : MonoBehaviour
             angleFormed = 0f;
         }else
         {
+            //se esta soltando do braco side
             print("Letting go of side arm");
             switch (anchors[1].arm)
             {
@@ -250,6 +258,28 @@ public class GrabHandler : MonoBehaviour
                     break;
             }
             ResetAnchor(ref anchors[1]);
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        ContactPoint point = collision.GetContact(0);
+        collisionCollider = collision.collider;
+        contactNormal = point.normal;
+    }
+    private void OnCollisionStay(Collision collision)
+    {
+        ContactPoint point = collision.GetContact(0);
+        collisionCollider = collision.collider;
+        contactNormal = point.normal;
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if(collision.collider == collisionCollider)
+        {
+            collisionCollider = null;
+            contactNormal = Vector3.zero;
         }
     }
 
