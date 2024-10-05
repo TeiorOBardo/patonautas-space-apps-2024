@@ -6,6 +6,7 @@ public class BetterCameraMovement : MonoBehaviour
 {
     //NAO ESQUECA DE COLOCAR O TRANSFORM DO SEU PLAYER
     public Transform player;
+    GrabHandler playerScript;
     private float verticalRotationLimitUp = 80f;
     private float verticalRotationLimitDown = 60f;
     private float horizontalRotationLimit = 110f;
@@ -14,32 +15,38 @@ public class BetterCameraMovement : MonoBehaviour
     //vou ter que alterar algumas coisas futuramente ainda
 
     // Update is called once per frame
-    void Update()
-    {
+    private void Start()
+    { 
         //deixa o cursor travado no meio
         Cursor.lockState = CursorLockMode.Locked;
-        
-        //cria um vetor pra rotacao baseado no movimento do mouse
-        Vector3 mouseRotation = new Vector3(-Input.GetAxisRaw("Mouse Y") * speed, Input.GetAxisRaw("Mouse X") * speed, 0);
-        transform.localEulerAngles += mouseRotation;
-        transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, transform.localEulerAngles.y, 0);
-
-        //pega a diferenca entre a rotacao da camera e a do player
-        float angleDiffenceX = Mathf.DeltaAngle(transform.localEulerAngles.y, player.localEulerAngles.y);
-        float angleDiffenceY = Mathf.DeltaAngle(transform.localEulerAngles.x, player.localEulerAngles.x);
-
-        transform.localEulerAngles = new Vector3(ClampAngle(transform.localEulerAngles.x, -verticalRotationLimitUp, verticalRotationLimitDown), ClampAngle(transform.localEulerAngles.y, -horizontalRotationLimit, horizontalRotationLimit), transform.localEulerAngles.z);
-        /*if (transform.localEulerAngles.y > horizontalRotationLimit)
+        playerScript = player.gameObject.GetComponent<GrabHandler>();
+    }
+    void Update()
+    {
+        if (!playerScript.flying)
         {
-            //se sim, nao deixa a diferenca passar do limite
-            print(transform.localEulerAngles.y + " transform.localEulerAngles.y");
-            transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, ClampAngle(transform.localEulerAngles.y, -horizontalRotationLimit, horizontalRotationLimit), transform.localEulerAngles.z);
+            //cria um vetor pra rotacao baseado no movimento do mouse
+            Vector3 mouseRotation = new Vector3(-Input.GetAxisRaw("Mouse Y") * speed, Input.GetAxisRaw("Mouse X") * speed, 0);
+            transform.localEulerAngles += mouseRotation;
+            transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, transform.localEulerAngles.y, 0);
+
+            //pega a diferenca entre a rotacao da camera e a do player
+            float angleDiffenceX = Mathf.DeltaAngle(transform.localEulerAngles.y, player.localEulerAngles.y);
+            float angleDiffenceY = Mathf.DeltaAngle(transform.localEulerAngles.x, player.localEulerAngles.x);
+
+            transform.localEulerAngles = new Vector3(ClampAngle(transform.localEulerAngles.x, -verticalRotationLimitUp, verticalRotationLimitDown), ClampAngle(transform.localEulerAngles.y, -horizontalRotationLimit, horizontalRotationLimit), transform.localEulerAngles.z);
+            /*if (transform.localEulerAngles.y > horizontalRotationLimit)
+            {
+                //se sim, nao deixa a diferenca passar do limite
+                print(transform.localEulerAngles.y + " transform.localEulerAngles.y");
+                transform.localEulerAngles = new Vector3(transform.localEulerAngles.x, ClampAngle(transform.localEulerAngles.y, -horizontalRotationLimit, horizontalRotationLimit), transform.localEulerAngles.z);
+            }
+            if (transform.localEulerAngles.x > verticalRotationLimitDown)
+            {
+                print(transform.localEulerAngles.x + " transform.localEulerAngles.x");
+                transform.localEulerAngles = new Vector3(ClampAngle(transform.localEulerAngles.x, -verticalRotationLimitUp, verticalRotationLimitDown), transform.localEulerAngles.y, transform.localEulerAngles.z);
+            }*/
         }
-        if (transform.localEulerAngles.x > verticalRotationLimitDown)
-        {
-            print(transform.localEulerAngles.x + " transform.localEulerAngles.x");
-            transform.localEulerAngles = new Vector3(ClampAngle(transform.localEulerAngles.x, -verticalRotationLimitUp, verticalRotationLimitDown), transform.localEulerAngles.y, transform.localEulerAngles.z);
-        }*/
     }
 
     //limita os angulos

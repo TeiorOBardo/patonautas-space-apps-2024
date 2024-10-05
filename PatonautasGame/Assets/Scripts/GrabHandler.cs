@@ -25,10 +25,11 @@ public class GrabHandler : MonoBehaviour
     bool needToSetup = false;
     bool stopSetup = false;
     bool stopFly = false;
-    bool flying = false;
+    public bool flying = false;
     RaycastHit hitInfo;
     LayerMask unmovableObjectLayer;
     float grabRange = 1.5f;
+    float flySpeed = 2f;
     float distanceFromRange = 0.5f;
     float verticalAngularSpeed = 20f;
     float angleFormed = 0f;
@@ -58,18 +59,27 @@ public class GrabHandler : MonoBehaviour
             else if (CanUngrab())
             {
                 print("Ungrabbing " + leftArmFree + "  = left arm " + rightArmFree + " = right arm");
-                Ungrab();
+                if (Input.GetMouseButtonDown(0))
+                {
+                    Ungrab(0);
+                }
+                else
+                {
+                    Ungrab(1);
+                }
             }
         }
         if(CanFly())
         {
-            if (!anchors[0].nulled)
-            {
-                Ungrab();
-            }
             if (!anchors[1].nulled)
             {
-                Ungrab();
+                print("Ungrabbing side");
+                Ungrab(anchors[1].arm - 1);
+            }
+            if (!anchors[0].nulled)
+            {
+                print("Ungrabbing main");
+                Ungrab(anchors[0].arm - 1);
             }
             flyCoroutine = StartCoroutine(SetupFly());
         }
@@ -77,6 +87,8 @@ public class GrabHandler : MonoBehaviour
         {
             StopCoroutine(flyCoroutine);
             flying = false;
+            stopFly = false;
+            rigidBody.velocity = playerCamera.forward * flySpeed;
         }
     }
 
@@ -110,7 +122,7 @@ public class GrabHandler : MonoBehaviour
 
     bool CanFly()
     {
-        return(Input.GetKeyDown(KeyCode.Space) && !flying);
+        return(Input.GetKeyDown(KeyCode.Space) && !flying && grabbing);
     }
     
     bool LookingAtGrabbable()
@@ -232,10 +244,11 @@ public class GrabHandler : MonoBehaviour
         }
     }
 
-    void Ungrab()
+    void Ungrab(int buttonPressed)
     {
+        print(anchors[0].arm);
         // se o braco que precisa soltar e o principal e tem outro braco segurando
-        if (Input.GetMouseButtonDown(anchors[0].arm-1) && (!anchors[1].nulled))
+        if ((buttonPressed == (anchors[0].arm - 1)) && (!anchors[1].nulled))
         {
             print("Making the other arm the main arm");
             ResetAnchor(ref anchors[0]);
@@ -259,7 +272,7 @@ public class GrabHandler : MonoBehaviour
                     leftArmFree = true;
                     break;
             }
-        }else if (Input.GetMouseButtonDown(anchors[0].arm - 1))
+        }else if (buttonPressed == (anchors[0].arm - 1))
         {
             //se esta soltando do braco principal
             print("Letting go of main arm");
@@ -303,33 +316,41 @@ public class GrabHandler : MonoBehaviour
         
         float timePassed = -3f;
         flying = true;
-        stopFly = false;
+        GameObject emptyObject = new GameObject("auxilary for fly");
+        GameObject emptyObjectReference = Instantiate(emptyObject, rigidBody.position, rigidBody.rotation);
         Vector3 startPosition = rigidBody.position;
         Quaternion startRotation = rigidBody.rotation;
         Quaternion targetRotation = Quaternion.LookRotation(playerCamera.forward, Vector3.up);
         Quaternion startCameraLocalRotation = playerCamera.localRotation;
         Vector3 cameraUp = playerCamera.up;
         Vector3 targetForward = playerCamera.forward;
-        playerCamera.SetParent(null);
-        playerCamera.position = rigidBody.position + new Vector3(0, 0.5f, 0);
-        playerCamera.rotation = rigidBody.rotation * startCameraLocalRotation;
+        playerCamera.SetParent(emptyObjectReference.transform);
+        //playerCamera.position = rigidBody.position + new Vector3(0, 0.5f, 0);
+        //playerCamera.rotation = rigidBody.rotation * startCameraLocalRotation;
         //playerCamera.rotation = Quaternion.LookRotation(targetForward, transform.up);
         while (true)
         {
-            timePassed += Time.deltaTime * 5;
-            Vector3 lastCameraRotation = playerCamera.localEulerAngles   ;
-            print(playerCamera.rotation + " camera.rotation");
-            //playerCamera.SetParent(null);
-            rigidBody.MoveRotation(Quaternion.Lerp(startRotation, targetRotation, Mathf.Clamp01((timePassed + 3) / 5)));
-            rigidBody.MovePosition(startPosition + targetForward * (timePassed * timePassed / 10f - 0.9f));
-            //playerCamera.SetParent(transform);
-            //playerCamera.position = startPosition + targetForward * (timePassed * timePassed / 10f - 0.9f);
-            //playerCamera.localEulerAngles = lastCameraRotation;
-            //playerCamera.localRotation = Quaternion.Lerp(startCameraLocalRotation, Quaternion.identity, Mathf.Clamp01((timePassed + 3) / 5));
+            if (emptyObjectReference != null)
+            {
+                timePassed += Time.deltaTime * 5;
+                Vector3 lastCameraRotation = playerCamera.localEulerAngles;
+                //playerCamera.SetParent(null);
+                rigidBody.MoveRotation(Quaternion.Lerp(startRotation, Quaternion.LookRotation(playerCamera.forward, playerCamera.up), Mathf.Clamp01((timePassed + 3) / 5)));
+                rigidBody.MovePosition(startPosition + playerCamera.forward * (timePassed * timePassed / 10f - 0.9f));
+                //playerCamera.SetParent(transform);
+                playerCamera.position = startPosition + new Vector3(0, 0.5f, 0) + targetForward * (timePassed * timePassed / 10f - 0.9f);
+                //playerCamera.localEulerAngles = lastCameraRotation;
+                //playerCamera.localRotation = Quaternion.Lerp(startCameraLocalRotation, Quaternion.identity, Mathf.Clamp01((timePassed + 3) / 5));
+            }
             if (timePassed >= 3)
             {
                 playerCamera.SetParent(transform);
+                playerCamera.localRotation = Quaternion.identity;
+                playerCamera.localPosition = new Vector3(0, 0.5f, 0);
                 stopFly = true;
+                Destroy(emptyObject);
+                Destroy(emptyObjectReference);
+
             }
             yield return null;
         }
