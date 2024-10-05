@@ -8,7 +8,7 @@ public class GrabHandler : MonoBehaviour
 {
     public Transform playerCamera;
     Rigidbody rigidBody;
-    struct Anchor {
+    public struct Anchor {
         public int arm;
         public Vector3 position;
         public float distance;
@@ -16,12 +16,13 @@ public class GrabHandler : MonoBehaviour
         public bool nulled;
         public Vector3 right;
     }
-    Anchor[] anchors = new Anchor[2];
+    // o anchors[0] eh sempre a anchor em que o player esta segurando, caso ele esteja segurando em algo, o anchors[1] eh a anchor do outro braço
+    public Anchor[] anchors = new Anchor[2];
     Vector3 contactNormal;
     Collider collisionCollider;
     bool leftArmFree = true;
     bool rightArmFree = true;
-    bool grabbing = false;
+    public bool grabbing = false;
     bool needToSetup = false;
     bool stopSetup = false;
     bool stopFly = false;
@@ -29,9 +30,9 @@ public class GrabHandler : MonoBehaviour
     RaycastHit hitInfo;
     LayerMask unmovableObjectLayer;
     float grabRange = 1.5f;
-    float flySpeed = 2f;
+    public float flySpeed = 2f;
     float distanceFromRange = 0.5f;
-    float verticalAngularSpeed = 20f;
+    public float verticalAngularSpeed = 20f;
     float angleFormed = 0f;
     Coroutine setupCoroutine;
     Coroutine flyCoroutine;
@@ -164,6 +165,7 @@ public class GrabHandler : MonoBehaviour
 
     void SetUpAnchor(ref Anchor anchor)
     {
+        //coloca as coisas da anchor para os valores atuais do player
         anchor.position = hitInfo.point;
         anchor.distance = (rigidBody.position - anchor.position).magnitude;
         anchor.rotation = rigidBody.rotation;
@@ -182,19 +184,14 @@ public class GrabHandler : MonoBehaviour
         {
             verticalDirection = -1f;
         }
-        /*float horizontalDirection = 0f;
-        if ((Input.GetKey(KeyCode.A)) && anchors[1].nulled)
-        {
-            horizontalDirection = 1f;
-        }
-        else if ((Input.GetKey(KeyCode.D)) && anchors[1].nulled)
-        {
-            horizontalDirection = -1f;
-        }*/
-        //anchors[0].rotation *= Quaternion.AngleAxis(5f * Time.fixedDeltaTime * horizontalDirection, Vector3.forward);
+        //armazena um vetor que vai da anchor ate o player
         Vector3 positionDifference = rigidBody.position - anchors[0].position;
+
+        //rotaciona esse vetor dependendo do movimento do player
         Quaternion rotation = Quaternion.AngleAxis(verticalAngularSpeed * Time.fixedDeltaTime * verticalDirection, anchors[0].right);
         Vector3 rotatedDifference = rotation * positionDifference;
+
+        //verifica se o player precisa virar na direcao da anchor e se aproximar ou afastar
         if (needToSetup)
         {
             setupCoroutine = StartCoroutine(SetupPositionAndRotation());
@@ -206,28 +203,32 @@ public class GrabHandler : MonoBehaviour
             print("Finished Setup");
             stopSetup = false;
         }
-        //print(transform.rotation + " transform.rotation");
-        //print(rigidBody.rotation + " rigidBody.rotation");
+
+        //isso impede o player de movimentar de jeitos indesejados 
         rigidBody.velocity = Vector3.zero;
         rigidBody.angularVelocity = Vector3.zero;
+
+        //o player so se movimenta se ele nao estiver colidindo, ou se a normal do ponto em que ele esta encostando forma um angulo de menos que X graus com a direcao do movimento
         if ((contactNormal == Vector3.zero) || (Vector3.Angle((rotatedDifference - positionDifference), contactNormal) <= 95f))
         {
             rigidBody.MovePosition((rotatedDifference.normalized * anchors[0].distance) + anchors[0].position);
             angleFormed += verticalDirection * Vector3.Angle(positionDifference, rigidBody.position - anchors[0].position);
             rigidBody.MoveRotation(Quaternion.AngleAxis(angleFormed, anchors[0].right) * anchors[0].rotation);
         }
-        // check if body got too far from anchors[1]
+        // TODO check if body got too far from anchors[1]
     }
 
     IEnumerator SetupPositionAndRotation()
     {
-        Quaternion originalRotation = anchors[0].rotation; // talvez tenha um problema pq quaternion e um reference value
+        Quaternion originalRotation = anchors[0].rotation; 
         float originalAnchorDistance = anchors[0].distance;
         Vector3 positionDifference = anchors[0].position - rigidBody.position;
         float time = 0f;
         while (true)
         {
             time += Time.deltaTime / 2f;
+
+            //moviementa o player para a distancia ideal do anchor, e rotaciona ele para olhar pro anchor
             anchors[0].distance = Mathf.Lerp(originalAnchorDistance, grabRange - distanceFromRange, Mathf.Clamp01(time));
             anchors[0].rotation = Quaternion.Slerp(originalRotation, Quaternion.LookRotation(positionDifference, Vector3.up), Mathf.Clamp01(time*2));
             /*   para debugar essa funcao
@@ -316,34 +317,31 @@ public class GrabHandler : MonoBehaviour
         
         float timePassed = -3f;
         flying = true;
+        //cria um gameobject vazio
         GameObject emptyObject = new GameObject("auxilary for fly");
         GameObject emptyObjectReference = Instantiate(emptyObject, rigidBody.position, rigidBody.rotation);
+
         Vector3 startPosition = rigidBody.position;
         Quaternion startRotation = rigidBody.rotation;
-        Quaternion targetRotation = Quaternion.LookRotation(playerCamera.forward, Vector3.up);
-        Quaternion startCameraLocalRotation = playerCamera.localRotation;
-        Vector3 cameraUp = playerCamera.up;
         Vector3 targetForward = playerCamera.forward;
+
+        //faz o player herdar esse gameovject
         playerCamera.SetParent(emptyObjectReference.transform);
-        //playerCamera.position = rigidBody.position + new Vector3(0, 0.5f, 0);
-        //playerCamera.rotation = rigidBody.rotation * startCameraLocalRotation;
-        //playerCamera.rotation = Quaternion.LookRotation(targetForward, transform.up);
+
         while (true)
         {
             if (emptyObjectReference != null)
             {
+                //movimenta o rigidbody e a posicao da camera
                 timePassed += Time.deltaTime * 5;
                 Vector3 lastCameraRotation = playerCamera.localEulerAngles;
-                //playerCamera.SetParent(null);
                 rigidBody.MoveRotation(Quaternion.Lerp(startRotation, Quaternion.LookRotation(playerCamera.forward, playerCamera.up), Mathf.Clamp01((timePassed + 3) / 5)));
                 rigidBody.MovePosition(startPosition + playerCamera.forward * (timePassed * timePassed / 10f - 0.9f));
-                //playerCamera.SetParent(transform);
                 playerCamera.position = startPosition + new Vector3(0, 0.5f, 0) + targetForward * (timePassed * timePassed / 10f - 0.9f);
-                //playerCamera.localEulerAngles = lastCameraRotation;
-                //playerCamera.localRotation = Quaternion.Lerp(startCameraLocalRotation, Quaternion.identity, Mathf.Clamp01((timePassed + 3) / 5));
             }
             if (timePassed >= 3)
             {
+                //destroi o gameobject e coloca a camera para herdar o player novamente
                 playerCamera.SetParent(transform);
                 playerCamera.localRotation = Quaternion.identity;
                 playerCamera.localPosition = new Vector3(0, 0.5f, 0);
@@ -353,6 +351,29 @@ public class GrabHandler : MonoBehaviour
 
             }
             yield return null;
+        }
+    }
+
+    public Vector3 GetAnchorPosition()
+    {
+        if (grabbing)
+        {
+            return anchors[0].position;
+        }
+        else
+        {
+            return Vector3.zero;
+        }
+    }
+    public Vector3 GetSideAnchorPosition()
+    {
+        if (!anchors[1].nulled)
+        {
+            return anchors[1].position;
+        }
+        else
+        {
+            return Vector3.zero;
         }
     }
 
