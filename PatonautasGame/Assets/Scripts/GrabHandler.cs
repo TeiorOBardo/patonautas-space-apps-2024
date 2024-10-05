@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 public class GrabHandler : MonoBehaviour
 {
@@ -25,6 +24,8 @@ public class GrabHandler : MonoBehaviour
     bool grabbing = false;
     bool needToSetup = false;
     bool stopSetup = false;
+    bool stopFly = false;
+    bool flying = false;
     RaycastHit hitInfo;
     LayerMask unmovableObjectLayer;
     float grabRange = 1.5f;
@@ -32,6 +33,7 @@ public class GrabHandler : MonoBehaviour
     float verticalAngularSpeed = 20f;
     float angleFormed = 0f;
     Coroutine setupCoroutine;
+    Coroutine flyCoroutine;
     void Start()
     {
         unmovableObjectLayer = LayerMask.GetMask("Not Movable Grabable");
@@ -43,18 +45,38 @@ public class GrabHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(CanTryToGrab())
+        if (!flying)
         {
-            if (LookingAtGrabbable())
+            if (CanTryToGrab())
             {
-                print("hit the collider " + hitInfo.collider.name);
-                GrabOnObject();
+                if (LookingAtGrabbable())
+                {
+                    print("hit the collider " + hitInfo.collider.name);
+                    GrabOnObject();
+                }
             }
-        }else if(CanUngrab())
+            else if (CanUngrab())
+            {
+                print("Ungrabbing " + leftArmFree + "  = left arm " + rightArmFree + " = right arm");
+                Ungrab();
+            }
+        }
+        if(CanFly())
         {
-            
-            print("Ungrabbing " + leftArmFree + "  = left arm " + rightArmFree + " = right arm");
-            Ungrab();
+            if (!anchors[0].nulled)
+            {
+                Ungrab();
+            }
+            if (!anchors[1].nulled)
+            {
+                Ungrab();
+            }
+            flyCoroutine = StartCoroutine(SetupFly());
+        }
+        if (stopFly)
+        {
+            StopCoroutine(flyCoroutine);
+            flying = false;
         }
     }
 
@@ -84,6 +106,11 @@ public class GrabHandler : MonoBehaviour
     bool CanUngrab()
     {
         return(Input.GetMouseButtonDown(0) && !leftArmFree) || (Input.GetMouseButtonDown(1) && !rightArmFree);
+    }
+
+    bool CanFly()
+    {
+        return(Input.GetKeyDown(KeyCode.Space) && !flying);
     }
     
     bool LookingAtGrabbable()
@@ -143,6 +170,16 @@ public class GrabHandler : MonoBehaviour
         {
             verticalDirection = -1f;
         }
+        /*float horizontalDirection = 0f;
+        if ((Input.GetKey(KeyCode.A)) && anchors[1].nulled)
+        {
+            horizontalDirection = 1f;
+        }
+        else if ((Input.GetKey(KeyCode.D)) && anchors[1].nulled)
+        {
+            horizontalDirection = -1f;
+        }*/
+        //anchors[0].rotation *= Quaternion.AngleAxis(5f * Time.fixedDeltaTime * horizontalDirection, Vector3.forward);
         Vector3 positionDifference = rigidBody.position - anchors[0].position;
         Quaternion rotation = Quaternion.AngleAxis(verticalAngularSpeed * Time.fixedDeltaTime * verticalDirection, anchors[0].right);
         Vector3 rotatedDifference = rotation * positionDifference;
@@ -258,6 +295,43 @@ public class GrabHandler : MonoBehaviour
                     break;
             }
             ResetAnchor(ref anchors[1]);
+        }
+    }
+
+    IEnumerator SetupFly()
+    {
+        
+        float timePassed = -3f;
+        flying = true;
+        stopFly = false;
+        Vector3 startPosition = rigidBody.position;
+        Quaternion startRotation = rigidBody.rotation;
+        Quaternion targetRotation = Quaternion.LookRotation(playerCamera.forward, Vector3.up);
+        Quaternion startCameraLocalRotation = playerCamera.localRotation;
+        Vector3 cameraUp = playerCamera.up;
+        Vector3 targetForward = playerCamera.forward;
+        playerCamera.SetParent(null);
+        playerCamera.position = rigidBody.position + new Vector3(0, 0.5f, 0);
+        playerCamera.rotation = rigidBody.rotation * startCameraLocalRotation;
+        //playerCamera.rotation = Quaternion.LookRotation(targetForward, transform.up);
+        while (true)
+        {
+            timePassed += Time.deltaTime * 5;
+            Vector3 lastCameraRotation = playerCamera.localEulerAngles   ;
+            print(playerCamera.rotation + " camera.rotation");
+            //playerCamera.SetParent(null);
+            rigidBody.MoveRotation(Quaternion.Lerp(startRotation, targetRotation, Mathf.Clamp01((timePassed + 3) / 5)));
+            rigidBody.MovePosition(startPosition + targetForward * (timePassed * timePassed / 10f - 0.9f));
+            //playerCamera.SetParent(transform);
+            //playerCamera.position = startPosition + targetForward * (timePassed * timePassed / 10f - 0.9f);
+            //playerCamera.localEulerAngles = lastCameraRotation;
+            //playerCamera.localRotation = Quaternion.Lerp(startCameraLocalRotation, Quaternion.identity, Mathf.Clamp01((timePassed + 3) / 5));
+            if (timePassed >= 3)
+            {
+                playerCamera.SetParent(transform);
+                stopFly = true;
+            }
+            yield return null;
         }
     }
 
