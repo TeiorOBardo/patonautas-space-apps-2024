@@ -25,7 +25,7 @@ MonoBehaviour:
       persistence: 0.43
       centre: {x: 20, y: 0, z: 0}
       minValue: 0.81
-  - enabled: 1
+  - enabled: 0
     useFirstLayerAsMask: 1
     noiseSettings:
       filterType: 0
@@ -36,7 +36,7 @@ MonoBehaviour:
       persistence: 0.99
       centre: {x: 20, y: 0, z: 0}
       minValue: 0.87
-  - enabled: 1
+  - enabled: 0
     useFirstLayerAsMask: 1
     noiseSettings:
       filterType: 1

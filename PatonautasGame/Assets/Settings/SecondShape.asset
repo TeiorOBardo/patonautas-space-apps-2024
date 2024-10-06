@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6feb2e60aa5319c458d8cebaf9b64b50, type: 3}
   m_Name: SecondShape
   m_EditorClassIdentifier: 
-  planetRadius: 2.8
+  planetRadius: 5.85
   noiseLayers:
   - enabled: 1
     useFirstLayerAsMask: 0
     noiseSettings:
       filterType: 0
-      strenght: 0.17
-      numLayers: 5
-      baseRoughness: 0.57
-      roughness: 0.63
-      persistence: 0.48
-      centre: {x: 0, y: 0, z: 0}
-      minValue: 1.58
+      strenght: 0.04
+      numLayers: 4
+      baseRoughness: 0.87
+      roughness: 2.06
+      persistence: 0.43
+      centre: {x: 20, y: 0, z: 0}
+      minValue: 0.81
