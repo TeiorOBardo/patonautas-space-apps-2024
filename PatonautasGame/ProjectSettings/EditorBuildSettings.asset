@@ -6,9 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SpaceShip.unity
+    path: Assets/Scenes/SpaceShipOffIn.unity
     guid: 5738caae2639f134089e4db5c53b6511
   - enabled: 1
     path: Assets/Scenes/SpaceStation.unity
     guid: e7f0ebbb05f0e394e89c8dee232f313d
+  - enabled: 1
+    path: Assets/Scenes/SpaceStation2.unity
+    guid: bc7b2faee6d7c8541942e8c521da2b0c
   m_configObjects: {}
