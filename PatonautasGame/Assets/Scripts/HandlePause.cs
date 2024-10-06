@@ -37,6 +37,7 @@ public class HandlePause : MonoBehaviour
 
     public void Pause()
     {
+        Cursor.lockState = CursorLockMode.None;
         background.SetActive(true);
         menu.SetActive(true);
         isPaused = true;
@@ -45,6 +46,7 @@ public class HandlePause : MonoBehaviour
 
     public void Unpause()
     {
+        Cursor.lockState = CursorLockMode.Locked;
         menu.SetActive(false);
         areYouSure.SetActive(false);
         controls.SetActive(false);
