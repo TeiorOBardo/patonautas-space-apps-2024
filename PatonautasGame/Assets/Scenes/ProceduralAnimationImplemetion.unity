@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 79181184}
   - component: {fileID: 79181183}
   - component: {fileID: 79181182}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Repositorio
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -443,13 +443,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1214687975}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.70705366, y: -0.7070538, z: 0.008663178, w: -0.008663008}
-  m_LocalPosition: {x: -1.02, y: 0.13, z: -1.24}
-  m_LocalScale: {x: 0.2045, y: -3.827319, z: 0.2045}
+  m_LocalRotation: {x: 0.5, y: -0.5, z: 0.5, w: -0.5}
+  m_LocalPosition: {x: 1.03, y: 0.13, z: 1.17}
+  m_LocalScale: {x: 0.2045, y: -2.49679, z: 0.2045}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -181.404, z: -90}
+  m_LocalEulerAnglesHint: {x: 0, y: -270, z: -90}
 --- !u!1 &1260020182
 GameObject:
   m_ObjectHideFlags: 0
@@ -621,6 +621,10 @@ PrefabInstance:
       propertyPath: m_Data.m_Target
       value: 
       objectReference: {fileID: 161741394}
+    - target: {fileID: 2924606196510477626, guid: edeff203ba3c8974caad3fd1fdfeebbc, type: 3}
+      propertyPath: Interact.m_Bits
+      value: 512
+      objectReference: {fileID: 0}
     - target: {fileID: 2924606196510477626, guid: edeff203ba3c8974caad3fd1fdfeebbc, type: 3}
       propertyPath: targets.Array.data[0]
       value: 

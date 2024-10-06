@@ -25,7 +25,13 @@ public class ArmMovement : MonoBehaviour
 
     public LayerMask itemLayer;
 
+    public LayerMask Interact;
 
+    GameObject gameOBJ;
+
+    string itemName;
+
+    public static int value = 0;
 
     private void Start()
     {
@@ -43,8 +49,6 @@ public class ArmMovement : MonoBehaviour
 
         RaycastHit hitInfo;
 
-        Debug.DrawRay(transform.position, hitPosition[0] - transform.position, Color.red);
-        Debug.DrawRay(transform.position, hitPosition[1] - transform.position, Color.green);
         //Movimento braço esquerdo
         if (handsFree[0])
         {
@@ -67,6 +71,8 @@ public class ArmMovement : MonoBehaviour
                     targetTargets[0] = hitInfo.point + hitInfo.normal * 0.1f;
                     handsFree[0] = false;
                     hitPosition[0] = hitInfo.point;
+                    gameOBJ = hitInfo.collider.gameObject;
+                    itemName = gameOBJ.name;
                 }
             }
             else
@@ -99,6 +105,7 @@ public class ArmMovement : MonoBehaviour
                     targetTargets[1] = hitInfo.point + hitInfo.normal * 0.1f;
                     handsFree[1] = false;
                     hitPosition[1] = hitInfo.point;
+                    gameOBJ = hitInfo.collider.gameObject;
                 }
             }
             else
@@ -108,6 +115,15 @@ public class ArmMovement : MonoBehaviour
                     handsFree[1] = true;
                 }
 
+            }
+        }
+
+        if(Physics.Raycast(ray, out hitInfo, 2f, Interact))
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                value++;
+                Soltar(gameOBJ);
             }
         }
 
