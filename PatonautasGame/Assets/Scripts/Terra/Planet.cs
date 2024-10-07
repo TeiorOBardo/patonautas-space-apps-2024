@@ -51,7 +51,8 @@ public class Planet : MonoBehaviour
 
                 meshObj.AddComponent<MeshRenderer>();
                 meshFilters[i] = meshObj.AddComponent<MeshFilter>();
-                //meshFilters[i].sharedMesh = new Mesh();
+                //meshFilters[i].sharedMesh = new Mesh();\
+                meshFilters[i].mesh.Clear();
             }
             meshFilters[i].GetComponent<MeshRenderer>().sharedMaterial = colourSettings.planetMaterial;
             terrainFaces[i] = new TerrainFace(shapeGenerator, meshFilters[i].mesh, resolution, directions[i]);
