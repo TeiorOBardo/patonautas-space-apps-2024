@@ -23,7 +23,7 @@ public class BetterCameraMovement : MonoBehaviour
     }
     void Update()
     {
-        if (!playerScript.flying)
+        if (!playerScript.flying && !HandlePause.isPaused)
         {
             //cria um vetor pra rotacao baseado no movimento do mouse
             Vector3 mouseRotation = new Vector3(-Input.GetAxisRaw("Mouse Y") * speed, Input.GetAxisRaw("Mouse X") * speed, 0);
